@@ -1,0 +1,293 @@
+/* --- Global Styles & Variables --- */
+:root {
+    --primary-bg: #0b141a;
+    --secondary-bg: #111b21;
+    --tertiary-bg: #202c33;
+    --accent-bg: #2a3942;
+    --panel-header-bg: #202c33;
+    --text-primary: #e9edef;
+    --text-secondary: #8696a0;
+    --icon-color: #aebac1;
+    --message-out-bg: #005c4b;
+    --message-in-bg: #202c33;
+    --active-chat-bg: #2a3942;
+    --brand-green: #00a884;
+    --border-color: #374045;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: var(--primary-bg);
+    color: var(--text-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* --- Main App Container --- */
+.app-container {
+    display: flex;
+    width: 95vw;
+    height: 95vh;
+    max-width: 1600px;
+    background-color: var(--secondary-bg);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* --- Left Panel: Chat List --- */
+.left-panel {
+    flex: 30;
+    min-width: 300px;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border-color);
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background-color: var(--panel-header-bg);
+    height: 60px;
+}
+
+.profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    cursor: pointer;
+}
+
+.header-icons {
+    display: flex;
+    gap: 28px;
+    color: var(--icon-color);
+}
+
+.header-icons i {
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+.search-container {
+    padding: 8px 12px;
+    background-color: var(--secondary-bg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background-color: var(--tertiary-bg);
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+
+.search-box i {
+    color: var(--text-secondary);
+    margin-right: 20px;
+}
+
+.search-box input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.chat-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.chat-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.chat-item:hover {
+    background-color: var(--tertiary-bg);
+}
+
+.chat-item.active {
+    background-color: var(--active-chat-bg);
+}
+
+.chat-info {
+    flex: 1;
+    margin-left: 15px;
+    overflow: hidden;
+}
+
+.chat-title {
+    display: flex;
+    justify-content: space-between;
+}
+
+.contact-name {
+    font-weight: 500;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.chat-last-message {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- Right Panel: Chat Window --- */
+.right-panel {
+    flex: 70;
+    display: flex;
+    flex-direction: column;
+    background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+    background-repeat: repeat;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 20px 60px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.welcome-screen {
+    margin: auto;
+    text-align: center;
+    color: var(--text-secondary);
+}
+.welcome-img {
+    width: 250px;
+    height: auto;
+}
+.welcome-screen h1 {
+    color: var(--text-primary);
+    font-weight: 300;
+    margin-top: 20px;
+}
+.welcome-screen p {
+    font-size: 0.9rem;
+    margin-top: 10px;
+    line-height: 1.5;
+}
+.end-to-end-encryption {
+    margin-top: 30px;
+    font-size: 0.8rem;
+}
+.end-to-end-encryption i {
+    margin-right: 5px;
+}
+
+.message {
+    max-width: 65%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    line-height: 1.4;
+    position: relative;
+}
+
+.message.sent {
+    background-color: var(--message-out-bg);
+    align-self: flex-end;
+}
+
+.message.received {
+    background-color: var(--message-in-bg);
+    align-self: flex-start;
+}
+
+.message-time-stamp {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    float: right;
+    margin-left: 10px;
+    margin-top: 8px;
+}
+
+/* --- Chat Input Area --- */
+.chat-input-area {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: var(--panel-header-bg);
+    height: 62px;
+}
+
+.input-actions {
+    display: flex;
+    gap: 15px;
+    font-size: 1.4rem;
+    color: var(--icon-color);
+    padding: 0 10px;
+}
+
+.input-actions i {
+    cursor: pointer;
+}
+
+.message-form {
+    flex: 1;
+    display: flex;
+    margin: 0 10px;
+}
+
+.message-form input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    background-color: var(--tertiary-bg);
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.message-form button {
+    background: none;
+    border: none;
+    color: var(--icon-color);
+    font-size: 1.4rem;
+    cursor: pointer;
+    padding: 0 15px;
+}
+
+/* --- Scrollbar --- */
+::-webkit-scrollbar {
+    width: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--accent-bg);
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #4a5b66;
+}

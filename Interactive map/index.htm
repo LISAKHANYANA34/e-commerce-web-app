@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Map</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .map-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 1200px;
+            height: 700px;
+            position: relative;
+        }
+
+        .map-header {
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .map-header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .map-header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .map-canvas {
+            position: relative;
+            width: 100%;
+            height: calc(100% - 120px);
+            background: linear-gradient(to bottom, #87CEEB 0%, #98FB98 100%);
+            overflow: hidden;
+            cursor: grab;
+        }
+
+        .map-canvas:active {
+            cursor: grabbing;
+        }
+
+        .map-world {
+            position: absolute;
+            width: 1500px;
+            height: 800px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 800"><rect width="1500" height="800" fill="%2387CEEB"/><path d="M200 150 Q300 100 400 150 Q500 200 600 150 Q700 100 800 150 Q900 200 1000 150 Q1100 100 1200 150 L1200 300 Q1100 250 1000 300 Q900 350 800 300 Q700 250 600 300 Q500 350 400 300 Q300 250 200 300 Z" fill="%2332CD32"/><path d="M150 400 Q250 350 350 400 Q450 450 550 400 Q650 350 750 400 Q850 450 950 400 Q1050 350 1150 400 L1150 600 Q1050 550 950 600 Q850 650 750 600 Q650 550 550 600 Q450 650 350 600 Q250 550 150 600 Z" fill="%2332CD32"/><circle cx="300" cy="200" r="30" fill="%23654321"/><circle cx="800" cy="250" r="40" fill="%23654321"/><circle cx="1100" cy="180" r="25" fill="%23654321"/><circle cx="400" cy="500" r="35" fill="%23654321"/><circle cx="900" cy="550" r="30" fill="%23654321"/></svg>') no-repeat center center;
+            background-size: cover;
+            transition: transform 0.2s ease;
+        }
+
+        .marker {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: bounce 2s infinite;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .marker:hover {
+            transform: rotate(-45deg) scale(1.2);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+        }
+
+        .marker::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: rotate(-45deg) translateY(0); }
+            40% { transform: rotate(-45deg) translateY(-10px); }
+            60% { transform: rotate(-45deg) translateY(-5px); }
+        }
+
+        .popup {
+            position: absolute;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            min-width: 200px;
+            z-index: 1000;
+            display: none;
+            border: 3px solid #3498db;
+        }
+
+        .popup::before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 20px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid #3498db;
+        }
+
+        .popup h3 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 1.2em;
+        }
+
+        .popup p {
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .controls {
+            position: absolute;
+            top: 140px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .control-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .legend h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .legend-marker {
+            width: 15px;
+            height: 15px;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .coordinates {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="map-container">
+        <div class="map-header">
+            <h1>Interactive World Map</h1>
+            <p>Click on markers to explore different locations</p>
+        </div>
+        
+        <div class="map-canvas" id="mapCanvas">
+            <div class="map-world" id="mapWorld">
+                <!-- Markers will be added here -->
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" id="zoomIn" title="Zoom In">+</button>
+            <button class="control-btn" id="zoomOut" title="Zoom Out">-</button>
+            <button class="control-btn" id="reset" title="Reset View">⌂</button>
+        </div>
+
+        <div class="legend">
+            <h4>Legend</h4>
+            <div class="legend-item">
+                <div class="legend-marker"></div>
+                <span>Points of Interest</span>
+            </div>
+        </div>
+
+        <div class="coordinates" id="coordinates">
+            Lat: 0.000°, Lng: 0.000°
+        </div>
+
+        <div class="popup" id="popup">
+            <h3 id="popupTitle"></h3>
+            <p id="popupContent"></p>
+        </div>
+    </div>
+
+    <script>
+        class InteractiveMap {
+            constructor() {
+                this.mapWorld = document.getElementById('mapWorld');
+                this.mapCanvas = document.getElementById('mapCanvas');
+                this.popup = document.getElementById('popup');
+                this.coordinates = document.getElementById('coordinates');
+                
+                this.scale = 1;
+                this.translateX = 0;
+                this.translateY = 0;
+                this.isDragging = false;
+                this.lastX = 0;
+                this.lastY = 0;
+                
+                this.locations = [
+                    { x: 300, y: 200, name: "New York", info: "The Big Apple - A bustling metropolis known for its skyscrapers and culture." },
+                    { x: 800, y: 250, name: "London", info: "Historic city with rich heritage, home to Big Ben and the Thames." },
+                    { x: 1100, y: 180, name: "Tokyo", info: "Modern Japanese capital blending tradition with cutting-edge technology." },
+                    { x: 400, y: 500, name: "Sydney", info: "Beautiful harbor city famous for its Opera House and beaches." },
+                    { x: 900, y: 550, name: "Cairo", info: "Ancient city home to the pyramids and rich Egyptian history." }
+                ];
+                
+                this.init();
+            }
+            
+            init() {
+                this.createMarkers();
+                this.bindEvents();
+                this.updateTransform();
+            }
+            
+            createMarkers() {
+                this.locations.forEach((location, index) => {
+                    const marker = document.createElement('div');
+                    marker.className = 'marker';
+                    marker.style.left = `${location.x}px`;
+                    marker.style.top = `${location.y}px`;
+                    marker.style.animationDelay = `${index * 0.2}s`;
+                    
+                    marker.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.showPopup(location, e.pageX, e.pageY);
+                    });
+                    
+                    this.mapWorld.appendChild(marker);
+                });
+            }
+            
+            showPopup(location, x, y) {
+                document.getElementById('popupTitle').textContent = location.name;
+                document.getElementById('popupContent').textContent = location.info;
+                
+                this.popup.style.left = `${x - this.mapCanvas.offsetLeft}px`;
+                this.popup.style.top = `${y - this.mapCanvas.offsetTop - 100}px`;
+                this.popup.style.display = 'block';
+            }
+            
+            hidePopup() {
+                this.popup.style.display = 'none';
+            }
+            
+            bindEvents() {
+                // Zoom controls
+                document.getElementById('zoomIn').addEventListener('click', () => {
+                    this.scale = Math.min(this.scale * 1.2, 3);
+                    this.updateTransform();
+                });
+                
+                document.getElementById('zoomOut').addEventListener('click', () => {
+                    this.scale = Math.max(this.scale / 1.2, 0.5);
+                    this.updateTransform();
+                });
+                
+                document.getElementById('reset').addEventListener('click', () => {
+                    this.scale = 1;
+                    this.translateX = 0;
+                    this.translateY = 0;
+                    this.updateTransform();
+                });
+                
+                // Mouse events for dragging
+                this.mapCanvas.addEventListener('mousedown', (e) => {
+                    this.isDragging = true;
+                    this.lastX = e.clientX;
+                    this.lastY = e.clientY;
+                    this.hidePopup();
+                });
+                
+                document.addEventListener('mousemove', (e) => {
+                    if (this.isDragging) {
+                        const deltaX = e.clientX - this.lastX;
+                        const deltaY = e.clientY - this.lastY;
+                        
+                        this.translateX += deltaX;
+                        this.translateY += deltaY;
+                        
+                        this.lastX = e.clientX;
+                        this.lastY = e.clientY;
+                        
+                        this.updateTransform();
+                    }
+                    
+                    // Update coordinates display
+                    const rect = this.mapCanvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    // Convert to pseudo lat/lng
+                    const lat = (90 - (y / rect.height) * 180).toFixed(3);
+                    const lng = ((x / rect.width) * 360 - 180).toFixed(3);
+                    
+                    this.coordinates.textContent = `Lat: ${lat}°, Lng: ${lng}°`;
+                });
+                
+                document.addEventListener('mouseup', () => {
+                    this.isDragging = false;
+                });
+                
+                // Touch events for mobile
+                this.mapCanvas.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    this.isDragging = true;
+                    this.lastX = touch.clientX;
+                    this.lastY = touch.clientY;
+                    this.hidePopup();
+                });
+                
+                document.addEventListener('touchmove', (e) => {
+                    if (this.isDragging && e.touches.length === 1) {
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const deltaX = touch.clientX - this.lastX;
+                        const deltaY = touch.clientY - this.lastY;
+                        
+                        this.translateX += deltaX;
+                        this.translateY += deltaY;
+                        
+                        this.lastX = touch.clientX;
+                        this.lastY = touch.clientY;
+                        
+                        this.updateTransform();
+                    }
+                });
+                
+                document.addEventListener('touchend', () => {
+                    this.isDragging = false;
+                });
+                
+                // Wheel zoom
+                this.mapCanvas.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                    this.scale = Math.min(Math.max(this.scale * delta, 0.5), 3);
+                    this.updateTransform();
+                });
+                
+                // Click outside popup to close
+                document.addEventListener('click', (e) => {
+                    if (!this.popup.contains(e.target)) {
+                        this.hidePopup();
+                    }
+                });
+            }
+            
+            updateTransform() {
+                this.mapWorld.style.transform = `translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale})`;
+            }
+        }
+        
+        // Initialize the map when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new InteractiveMap();
+        });
+    </script>
+</body>
+</html>
